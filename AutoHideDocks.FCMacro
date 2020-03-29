@@ -22,17 +22,16 @@ __Files__ = ''
 from PySide2 import QtCore, QtGui, QtWidgets
 
 dockAreas = {}
-dockSituations = {}
 mv = FreeCADGui.getMainWindow()
 
 for dock in mv.findChildren(QtWidgets.QDockWidget):
-    dockSituations[dock.objectName()] =  dock.isVisible()
     dockAreas[dock.objectName()] =  str(mv.dockWidgetArea(dock)).rpartition('.')[-1]
 
 class autoHide(QtCore.QObject):
     def __init__(self, dock, area):
         self.side = False
         self.target = dock
+        self.docked = True
         super(autoHide, self).__init__(self.target)
         self.target.installEventFilter(self)
         self.visible = self.target.features()
@@ -50,15 +49,17 @@ class autoHide(QtCore.QObject):
 
     def eventFilter(self, source, event):
         if source is self.target:
-            if event.type() == event.Enter:
+            if (event.type() is event.Enter) or (self.target.isFloating() and self.docked):
                 self.target.setFeatures(self.visible)
+                self.docked = False
                 if self.side:
                     self.target.setFixedWidth(self.orgSize)
                 else:
                     self.target.setFixedHeight(self.orgSize)
                 return True
-            elif event.type() == event.Leave:
+            elif event.type() is event.Leave:
                 self.target.setFeatures(self.hiden)
+                self.docked = True
                 if self.side:
                     self.target.setFixedWidth(self.TBHeight)
                 else:
@@ -68,6 +69,4 @@ class autoHide(QtCore.QObject):
 
 for key, value in dockAreas.items():
     dock = mv.findChild(QtWidgets.QDockWidget, key)
-    situation = dockSituations.get(key)
-    area = value
-    autoHide(dock, area)
+    autoHide(dock, value)
