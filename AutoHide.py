@@ -1,3 +1,24 @@
+
+"""
+This macro makes by hides the FreeCAD docks (sidebars), by default. 
+When the mouse moves towards them, they become visible.
+"""
+
+__Name__ = 'AutoHideDocks'
+__Comment__ = 'FreeCAD docks are hidden by default until mouse scrolling activates them'
+__Author__ = '@HakanSeven12'
+__Version__ = '0.3'
+__Date__ = '2020-03-29'
+__License__ = 'LGPL2.1'
+__Web__ = ''
+__Wiki__ = ''
+__Icon__ = ''
+__Help__ = 'https://forum.freecadweb.org/viewtopic.php?f=22&t=44659'
+__Status__ = 'Beta'
+__Requires__ = 'FreeCAD V0.18+'
+__Communication__ = 'https://github.com/HakanSeven12/FCAutoHide'
+__Files__ = ''
+
 from PySide2 import QtCore, QtGui, QtWidgets
 
 dockAreas = {}
