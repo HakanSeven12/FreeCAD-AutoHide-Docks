@@ -21,52 +21,52 @@ __Files__ = ''
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
-dockAreas = {}
-mv = FreeCADGui.getMainWindow()
-
-for dock in mv.findChildren(QtWidgets.QDockWidget):
-    dockAreas[dock.objectName()] =  str(mv.dockWidgetArea(dock)).rpartition('.')[-1]
-
 class autoHide(QtCore.QObject):
-    def __init__(self, dock, area):
+    def __init__(self, dock):
         self.side = False
         self.target = dock
         self.docked = True
         super(autoHide, self).__init__(self.target)
         self.target.installEventFilter(self)
         self.visible = self.target.features()
-        self.orgSize = self.target.sizeHint().height()
-        if (area == 'LeftDockWidgetArea') or (area == 'RightDockWidgetArea'):
-            self.orgSize = self.target.sizeHint().width()
-            self.target.setFeatures(QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
-            self.side = True
-        self.hiden = self.target.features()
-        self.TBHeight = self.target.style().pixelMetric(QtWidgets.QStyle.PM_TitleBarHeight)
-        if self.side:
-            self.target.setFixedWidth(self.TBHeight)
-        else:
-            self.target.setFixedHeight(self.TBHeight)
+        self.orgHeight = self.target.sizeHint().height()
+        self.orgWidth = self.target.sizeHint().width()
+        self.collapseWidget()
 
     def eventFilter(self, source, event):
         if source is self.target:
             if (event.type() is event.Enter) or (self.target.isFloating() and self.docked):
+                self.target.setMaximumSize(5000, 5000)
                 self.target.setFeatures(self.visible)
                 self.docked = False
                 if self.side:
-                    self.target.setFixedWidth(self.orgSize)
+                    self.target.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+                    self.target.setFixedWidth(self.orgWidth)
                 else:
-                    self.target.setFixedHeight(self.orgSize)
+                    self.target.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+                    self.target.setFixedHeight(self.orgHeight)
                 return True
             elif event.type() is event.Leave:
-                self.target.setFeatures(self.hiden)
-                self.docked = True
-                if self.side:
-                    self.target.setFixedWidth(self.TBHeight)
-                else:
-                    self.target.setFixedHeight(self.TBHeight)
+                self.collapseWidget()
                 return True
         return super(autoHide, self).eventFilter(source, event)
+        
+    def collapseWidget(self):
+        self.side = False
+        area = str(mv.dockWidgetArea(self.target)).rpartition('.')[-1]
+        if (area == 'LeftDockWidgetArea') or (area == 'RightDockWidgetArea'):
+            self.target.setFeatures(QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
+            self.side = True
+        self.TBHeight = self.target.style().pixelMetric(QtWidgets.QStyle.PM_TitleBarHeight)
+        self.docked = True
 
-for key, value in dockAreas.items():
-    dock = mv.findChild(QtWidgets.QDockWidget, key)
-    autoHide(dock, value)
+        if self.side:
+            self.target.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+            self.target.setFixedWidth(self.TBHeight)
+        else:
+            self.target.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+            self.target.setFixedHeight(self.TBHeight)
+
+mv = FreeCADGui.getMainWindow()
+for dock in mv.findChildren(QtWidgets.QDockWidget):
+    autoHide(dock)
