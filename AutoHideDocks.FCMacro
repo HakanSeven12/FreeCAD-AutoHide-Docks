@@ -65,12 +65,13 @@ class autoHide(QtCore.QObject):
         self.side = False
         self.docked = True
         self.target.setMaximumSize(5000, 5000)
-        area = str(mv.dockWidgetArea(self.target)).rpartition('.')[-1]
+        area = mv.dockWidgetArea(self.target)
 
-        if (area == 'LeftDockWidgetArea') or (area == 'RightDockWidgetArea'):
+        if (area == QtCore.Qt.LeftDockWidgetArea) or \
+            (area == QtCore.Qt.RightDockWidgetArea):
+            self.side = True
             self.target.setFeatures(
                 QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
-            self.side = True
 
         try:
             self.TBHeight = self.target.style().pixelMetric(
@@ -86,6 +87,8 @@ class autoHide(QtCore.QObject):
             self.target.setSizePolicy(
                 QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
             self.target.setFixedHeight(self.TBHeight)
+
+
 
 mv = FreeCADGui.getMainWindow()
 
