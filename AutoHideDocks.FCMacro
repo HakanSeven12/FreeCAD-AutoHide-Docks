@@ -22,29 +22,39 @@ __Files__ = ''
 from PySide2 import QtCore, QtGui, QtWidgets
 
 class autoHide(QtCore.QObject):
-    def __init__(self, dock):
+    def __init__(self, dock, AHD):
         self.side = False
         self.target = dock
+        self.AHD = AHD
         self.docked = True
+        self.AHEnable = 0
         super(autoHide, self).__init__(self.target)
         self.target.installEventFilter(self)
+        self.AHD.installEventFilter(self)
         self.visible = self.target.features()
         self.orgHeight = self.target.sizeHint().height()
         self.orgWidth = self.target.sizeHint().width()
         self.collapsedDock()
 
     def eventFilter(self, source, event):
-        if source is self.target:
+        if (source is self.AHD) and (event.type() is event.MouseButtonPress):
+            self.AHEnable = (self.AHEnable + 1) % 2
 
+            if self.AHEnable:
+                self.openDock()
+                self.target.removeEventFilter(self)
+            else:
+                self.collapsedDock()
+                self.target.installEventFilter(self)
+
+        elif source is self.target:
             if (event.type() is event.Enter) or \
                 (self.target.isFloating() and self.docked):
                 self.openDock()
                 return True
-
             elif event.type() is event.Leave:
                 self.collapsedDock()
                 return True
-
         return super(autoHide, self).eventFilter(source, event)
 
     def openDock(self):
@@ -91,6 +101,9 @@ class autoHide(QtCore.QObject):
 
 
 mv = FreeCADGui.getMainWindow()
+AHD = QtWidgets.QPushButton("Auto Hide")
+mv.statusBar().addPermanentWidget(AHD)
+mv.statusBar().setVisible(True)
 
 for dock in mv.findChildren(QtWidgets.QDockWidget):
-    autoHide(dock)
+    autoHide(dock, AHD)
