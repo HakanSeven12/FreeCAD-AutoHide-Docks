@@ -43,7 +43,7 @@ class autoHide(QtCore.QObject):
             self.AHEnable = (self.AHEnable + 1) % 2
 
             if self.AHEnable:
-                self.openDock(self.target, area)
+                self.openDock(self.target)
                 self.target.removeEventFilter(self)
             else:
                 self.collapsedDock(self.target, area)
