@@ -34,60 +34,68 @@ class autoHide(QtCore.QObject):
         self.visible = self.target.features()
         self.orgHeight = self.target.sizeHint().height()
         self.orgWidth = self.target.sizeHint().width()
-        self.collapsedDock()
+        area = mv.dockWidgetArea(self.target)
+        self.collapsedDock(dock, area)
 
     def eventFilter(self, source, event):
+        area = mv.dockWidgetArea(self.target)
         if (source is self.AHD) and (event.type() is event.MouseButtonPress):
             self.AHEnable = (self.AHEnable + 1) % 2
 
             if self.AHEnable:
-                self.openDock()
+                self.openDock(self.target, area)
                 self.target.removeEventFilter(self)
             else:
-                self.collapsedDock()
+                self.collapsedDock(self.target, area)
                 self.target.installEventFilter(self)
 
         elif source is self.target:
             if (event.type() is event.Enter) or \
                 (self.target.isFloating() and self.docked):
-                self.openDock()
+                for dockWid in mv.findChildren(QtWidgets.QDockWidget):
+                    if dockWid.isVisible and (mv.dockWidgetArea(dockWid) is area):
+                        self.openDock(dockWid)
                 return True
+
             elif event.type() is event.Leave:
-                self.collapsedDock()
+                for dockWid in mv.findChildren(QtWidgets.QDockWidget):
+                    if dockWid.isVisible and (mv.dockWidgetArea(dockWid) is area):
+                        self.collapsedDock(dockWid, area)
                 return True
+
         return super(autoHide, self).eventFilter(source, event)
 
-    def openDock(self):
-        self.target.setMaximumSize(5000, 5000)
-        self.target.setFeatures(self.visible)
+    def openDock(self, dock):
+        dock.setMaximumSize(5000, 5000)
+        dock.setFeatures(self.visible)
         self.docked = False
-        self.modifyDock(self.orgWidth, self.orgHeight)
+        self.modifyDock(dock, self.orgWidth, self.orgHeight)
 
-    def collapsedDock(self):
+
+    def collapsedDock(self, dock, area):
         self.side = False
         self.docked = True
-        self.target.setMaximumSize(5000, 5000)
-        area = mv.dockWidgetArea(self.target)
+        dock.setMaximumSize(5000, 5000)
 
         if (area is QtCore.Qt.LeftDockWidgetArea) or \
             (area is QtCore.Qt.RightDockWidgetArea):
             self.side = True
-            self.target.setFeatures(
+            dock.setFeatures(
                 QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
 
         try:
-            TBHeight = self.target.style().pixelMetric(
+            TBHeight = dock.style().pixelMetric(
                 QtWidgets.QStyle.PM_TitleBarHeight)
         except:
             TBHeight = 25
-        self.modifyDock(TBHeight, TBHeight)
+        self.modifyDock(dock, TBHeight, TBHeight)
 
-    def modifyDock(self, width, height):
+    def modifyDock(self, dock, width, height):
         if self.side:
-            self.target.setFixedWidth(width)
+            dock.setFixedWidth(width)
         else:
-            self.target.setFixedHeight(height)
-        self.target.setSizePolicy(
+            dock.setFixedHeight(height)
+        dock.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
 mv = FreeCADGui.getMainWindow()
