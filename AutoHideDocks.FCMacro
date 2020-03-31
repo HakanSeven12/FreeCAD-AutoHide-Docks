@@ -61,15 +61,7 @@ class autoHide(QtCore.QObject):
         self.target.setMaximumSize(5000, 5000)
         self.target.setFeatures(self.visible)
         self.docked = False
-
-        if self.side:
-            self.target.setSizePolicy(
-                QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
-            self.target.setFixedWidth(self.orgWidth)
-        else:
-            self.target.setSizePolicy(
-                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-            self.target.setFixedHeight(self.orgHeight)
+        self.modifyDock(self.orgWidth, self.orgHeight)
 
     def collapsedDock(self):
         self.side = False
@@ -77,33 +69,42 @@ class autoHide(QtCore.QObject):
         self.target.setMaximumSize(5000, 5000)
         area = mv.dockWidgetArea(self.target)
 
-        if (area == QtCore.Qt.LeftDockWidgetArea) or \
-            (area == QtCore.Qt.RightDockWidgetArea):
+        if (area is QtCore.Qt.LeftDockWidgetArea) or \
+            (area is QtCore.Qt.RightDockWidgetArea):
             self.side = True
             self.target.setFeatures(
                 QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
 
         try:
-            self.TBHeight = self.target.style().pixelMetric(
+            TBHeight = self.target.style().pixelMetric(
                 QtWidgets.QStyle.PM_TitleBarHeight)
         except:
-            self.TBHeight = 25
+            TBHeight = 25
+        self.modifyDock(TBHeight, TBHeight)
 
+    def modifyDock(self, width, height):
         if self.side:
-            self.target.setSizePolicy(
-                QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
-            self.target.setFixedWidth(self.TBHeight)
+            self.target.setFixedWidth(width)
         else:
-            self.target.setSizePolicy(
-                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-            self.target.setFixedHeight(self.TBHeight)
-
-
+            self.target.setFixedHeight(height)
+        self.target.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
 mv = FreeCADGui.getMainWindow()
-AHD = QtWidgets.QPushButton("Auto Hide")
+AHD = QtWidgets.QPushButton("AH")
 mv.statusBar().addPermanentWidget(AHD)
 mv.statusBar().setVisible(True)
 
 for dock in mv.findChildren(QtWidgets.QDockWidget):
     autoHide(dock, AHD)
+
+    """
+    title_bar = QtWidgets.QWidget()
+    layout = QtWidgets.QHBoxLayout()
+    title_bar.setLayout(layout)
+    button = QtWidgets.QToolButton()
+    layout.addWidget(button)
+    icon = dock.style().standardIcon(QtWidgets.QStyle.SP_TitleBarMaxButton, widget=dock)
+    button.setIcon( icon )
+    dock.setTitleBarWidget(title_bar)
+    """
