@@ -25,6 +25,8 @@ class autoHide(QtCore.QObject):
     side = False
     docked = True
     AHEnable = 0
+    target = None
+    AHD = None
 
     def __init__(self, dock, AHD):
         super(autoHide, self).__init__(dock)
