@@ -80,8 +80,9 @@ class autoHide(QtCore.QObject):
         if (area is QtCore.Qt.LeftDockWidgetArea) or \
             (area is QtCore.Qt.RightDockWidgetArea):
             self.side = True
-            dock.setFeatures(
-                QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
+            features = QtWidgets.QDockWidget.DockWidgetFeatures(
+                self.visible | QtWidgets.QDockWidget.DockWidgetVerticalTitleBar)
+            dock.setFeatures(features)
 
         try:
             TBHeight = dock.style().pixelMetric(
