@@ -22,20 +22,21 @@ __Files__ = ''
 from PySide2 import QtCore, QtGui, QtWidgets
 
 class autoHide(QtCore.QObject):
+    side = False
+    docked = True
+    AHEnable = 0
+
     def __init__(self, dock, AHD):
-        self.side = False
+        super(autoHide, self).__init__(dock)
+        dock.installEventFilter(self)
+        AHD.installEventFilter(self)
+        self.visible = dock.features()
+        self.orgHeight = dock.sizeHint().height()
+        self.orgWidth = dock.sizeHint().width()
+        area = mv.dockWidgetArea(dock)
+        self.collapsedDock(dock, area)
         self.target = dock
         self.AHD = AHD
-        self.docked = True
-        self.AHEnable = 0
-        super(autoHide, self).__init__(self.target)
-        self.target.installEventFilter(self)
-        self.AHD.installEventFilter(self)
-        self.visible = self.target.features()
-        self.orgHeight = self.target.sizeHint().height()
-        self.orgWidth = self.target.sizeHint().width()
-        area = mv.dockWidgetArea(self.target)
-        self.collapsedDock(dock, area)
 
     def eventFilter(self, source, event):
         area = mv.dockWidgetArea(self.target)
